@@ -94,14 +94,14 @@
 SQLiteはローカルで軽量に動く、サーバが不要、Pythonに標準で組み込まれている、データタイプが5種類しかなく極めてシンプル、という理由から、個人的に結構好きなデータベースです。
 
 ```sql
-CREATE TABLE my_blog (
+sqlite> CREATE TABLE my_blog (
     `タイトル` TEXT,
     `カテゴリ` TEXT,
     `評価` REAL,
     `公開日時`　DATE
 );
 
-INSERT INTO my_blog VALUES
+sqlite> INSERT INTO my_blog VALUES
 ("山手線一周","旅行", 3.4, "2023-04-01"),
 ("データ分析入門","分析", 4.3, "2023-03-02"),
 ("昨日のご飯","生活", 3, "2023-02-14");
@@ -110,10 +110,10 @@ INSERT INTO my_blog VALUES
 最後に、上記で作成したテーブルを表示させてみましょう。
 
 ```sql
-.mode column -- 表示モードを整える
-.headers on -- ヘッダーを表示される
+sqlite> .mode column -- 表示モードを整える
+sqlite> .headers on -- ヘッダーを表示される
 
-SELECT * FROM my_blog;
+sqlite> SELECT * FROM my_blog;
 
 タイトル     カテゴリ  評価   公開日時      
 -------  ----  ---  ----------
