@@ -62,9 +62,9 @@
 
 例えば、ブログサイトのエントリーを管理しているCSVファイルを見てみましょう。
 
-File: `my_blog.csv`
+** ファイル: `my_blog.csv` **
 ```csv
-#タイトル,カテゴリ,評価,公開日時
+タイトル,カテゴリ,評価,公開日時
 山手線一周,旅行,3.4,2023-04-01
 データ分析入門,分析,4.3,2023-03-02
 昨日のご飯,生活,3,2023-02-14
@@ -131,6 +131,96 @@ SELECT * FROM my_blog;
 ## データレイクとスキーマ・オン・リード
 
 データレイクは、先ほど書いたように、データを「テーブル」ではなく、「ファイル」として置いておくための保存場所です。データレイクが登場した背景は、データベースが持つスキーマ・オン・ライト方式の課題解決に加えて、ストレージが安価になり、大規模なファイルを保存して置いても、そこまで多くのお金がかからなくなった、という理由もあります。主に使用されるのは、オブジェクトストレージ(AWS S3やAzure Blogストレージなど)です。
+
+例えば、Webサーバのアクセスログ(gzipされたテキストデータ)をオブジェクトストレージ上に適当にフォルダを切って、置いておけば、それがもうデータレイクとも言えます。と、ここで、じゃあ単なるデータレイクとストレージは変わらないじゃないか、と思ったと思います。
+
+そうです。データレイクには、もう一つ重要なそうそがあります。それは、先ほど書いた通り「データが必要になったタイミングで構造化処理を実施する」機能です。この機能を実現するツールは色々あります。有名なのが、Hadoop(Hive)、Presto、Sparkあたりでしょうか。データの構造化処理ができればいいので、pandasなどでも実施は可能だと思います。ここでは、Apache Sparkを使ってデータレイクの処理を見ていきたいと思います。
+
+それでは、Apache SparkをUbuntuにインストールして、起動し、先ほどのCSVファイルを操作してみましょう。
+
+```shell
+### Ubuntu 22.04.2 LTS
+$ sudo apt install openjdk-11-jre-headless
+$ sudo apt install python-is-python3 python3-pip
+$ pip install pyspark
+### Shellのリロード
+$ pyspark --version
+version 3.4.0
+```
+
+先ほどのファイルを絶対パスからアクセスしやすい位置に置いておきます。
+
+```sh
+$ sudo mkdir /lake
+$ sudo chmod 777 /lake
+$ mv my_blog.csv /lake/
+$ ls -l /lake
+total 4
+-rw-rw-r-- 1 ubuntu ubuntu 165 May  2 11:16 my_blog.csv
+```
+
+また、少し構造化処理を加えるので、レコードを足しておきたいと思います。同じディレクトリに、別ファイルとして以下のCSVも作っておきます。
+
+```sh
+### my_blog_002.csvを以下の内容で作成しておく
+$ cat /lake/my_blog_002.csv
+
+タイトル,カテゴリ,評価,公開日時
+東武日光線往復,旅行,4.8,2023-03-25
+Spark入門,分析,2.9,2023-04-10
+明日の運動,生活,1.9,2023-03-09
+
+$ ls -l /lake/
+total 8
+-rw-rw-r-- 1 ubuntu ubuntu 164 May  2 11:25 my_blog.csv
+-rw-rw-r-- 1 ubuntu ubuntu 162 May  2 11:24 my_blog_002.csv
+```
+
+それではSpark(`pyspark`)を立ち上げて、CSVファイルを調理していきたいと思います。
+
+```python
+$ pyspark
+...
+...
+Welcome to
+      ____              __
+     / __/__  ___ _____/ /__
+    _\ \/ _ \/ _ `/ __/  '_/
+   /__ / .__/\_,_/_/ /_/\_\   version 3.4.0
+      /_/
+
+Using Python version 3.10.6 (main, Mar 10 2023 10:55:28)
+Spark context Web UI available at http://192.168.64.14:4040
+Spark context available as 'sc' (master = local[*], app id = local-1682993801846).
+SparkSession available as 'spark'.
+
+>>> df = (
+        spark.read.format('csv')
+        .option('inferSchema', True)
+        .option('Header', True)
+        .load('/lake/my_blog*.csv')
+
+>>> df.show()
++--------------+--------+----+----------+
+|      タイトル|カテゴリ|評価|  公開日時|
++--------------+--------+----+----------+
+|    山手線一周|    旅行| 3.4|2023-04-01|
+|データ分析入門|    分析| 4.3|2023-03-02|
+|    昨日のご飯|    生活| 3.0|2023-02-14|
+|東武日光線往復|    旅行| 4.8|2023-03-25|
+|     Spark入門|    分析| 2.9|2023-04-10|
+|    明日の運動|    生活| 1.9|2023-03-09|
++--------------+--------+----+----------+
+
+>>> df.printSchema()
+root
+ |-- タイトル: string (nullable = true)
+ |-- カテゴリ: string (nullable = true)
+ |-- 評価: double (nullable = true)
+ |-- 公開日時: date (nullable = true)
+```
+
+
 
 
 
