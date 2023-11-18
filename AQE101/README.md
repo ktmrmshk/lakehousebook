@@ -30,4 +30,4 @@ AQEではテーブルの結合のときに、あるパーティションだけ�
 
 ## AQEのパフィーマンス向上
 
-それでは、AQEが有効になることでどの程度パフォーマンスが向上するのでしょうか。もちろんクエリの種類によって効果が異なります。一つのレポート(Databricks, https://www.databricks.com/blog/2020/05/29/adaptive-query-execution-speeding-up-spark-sql-at-runtime.html)によると、TPC-DSのベンチマーククエリから10クエリをピックアップして計測したところ差が大きかったもので8倍、小さいものでも1.1倍の速度向上が確認できています。
+それでは、AQEが有効になることでどの程度パフォーマンスが向上するのでしょうか。もちろんクエリの種類によって効果が異なります。一つのレポート(Databricks社のブログ記事, https://www.databricks.com/blog/2020/05/29/adaptive-query-execution-speeding-up-spark-sql-at-runtime.html )によると、TPC-DSのベンチマーククエリから10クエリをピックアップして計測したところ差が大きかったもので8倍、小さいものでも1.1倍の速度向上が確認できています。
