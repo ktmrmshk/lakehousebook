@@ -38,8 +38,9 @@ Databricks上のデータを可視化(グラフ化)して、さらにそれら�
 
 ## LakeViewの機能
 
+それでは、実際にダッシュボードを作成していく手順を見ていきます。
 
-## サンプルデータの用意
+### サンプルデータの用意
 
 今回のデモで使用するデータを用意します。Databricksではサンプルデータが使えるようになっているため、これらを使っていきます。ただし、Unity Catalog(Databricksのカタログ機能)上のテーブルがLakeviewの対象になるため、適当なカタログ(`your_cat`)を作成し、そこにサンプルデータをコピー(`CLONE`)しておきます。
 
@@ -57,9 +58,6 @@ CREATE TABLE your_cat.samples.nation CLONE samples.tpch.nation;
 上記の3つのテーブルデータは、
 テーブル名から推測できる通り、ある小売店の売り上げデータ(POS)と顧客情報になります。
 
-## ダッシュボードの作成
-
-サンプルのダッシュボードを作っていきます。以下のイメージが今回作成するダッシュボードの完成図です。
 
 ### ダッシュボードオプジェクトの作成
 
@@ -77,7 +75,7 @@ CREATE TABLE your_cat.samples.nation CLONE samples.tpch.nation;
 売り上げの月次の推移を棒グラフで示せ
 
 
-## データの追加
+### データの追加
 
 ダッシュボード上で可視化するデータ(テーブル)を追加していきます。
 今回は、サンプルデータとして用意した以下の3つテーブルを使用します。
@@ -95,7 +93,7 @@ CREATE TABLE your_cat.samples.nation CLONE samples.tpch.nation;
 ![data](./images/data_tab.png)
 
 
-## チャートの配置
+### チャートの配置
 
 それではチャート(グラフ)をダッシュボードに追加していきます。
 チャートの作り方は以下の２通りがあります。
@@ -144,7 +142,7 @@ Lakeviewでは、可視化するテーブルを指定する際に、テーブル
         count(*) as cnt,
         sum(o_totalprice) as total_price
       from
-        ktmrcat.samples.orders
+        your_cat.samples.orders
       group by
         o_custkey,
         o_orderstatus
@@ -154,8 +152,8 @@ Lakeviewでは、可視化するテーブルを指定する際に、テーブル
         *
       from
         total_price_by_customer t
-        join ktmrcat.samples.customer c on t.o_custkey = c.c_custkey
-        join ktmrcat.samples.nation n on c.c_nationkey = n.n_nationkey
+        join your_cat.samples.customer c on t.o_custkey = c.c_custkey
+        join your_cat.samples.nation n on c.c_nationkey = n.n_nationkey
     )
     select
       *
@@ -182,7 +180,7 @@ Lakeviewでは、可視化するテーブルを指定する際に、テーブル
     ![added_chart.png](./images/added_chart.png)
 
 
-## フィルタの追加
+### フィルタの追加
 
 ダッシュボードの機能としてフィルタを追加して見ましょう。
 ここでは、`order status`のフィルタ条件を追加してみます。
@@ -201,8 +199,42 @@ Lakeviewでは、可視化するテーブルを指定する際に、テーブル
 ![filter](./images/filter.png)
 
 
-## ダッシュボードの公開,定期配信
+### ダッシュボードの共有・公開
+
+チャートなどを配置して作成したダッシュボードの共有について見ていきます。
+ダッシュボードは以下の2つのモード(状態)を持っています。
+
+1. 下書きモード: ダッシュボードを編集するためのモード
+1. 公開モード: 外部にダッシュボードとして公開するためのモード
+
+一つのダッシュボードについて、2つのモード状態が**併存します**。つまり、下書きモードと公開モードで独立にダッシュボードが管理されます。
+下書きモードでダッシュボードを編集・変更・作成した場合には、下書きモードとして保存されます。この状態から"公開"モードにすることで公開モードが上書きされます。下書きモードで編集しても、"公開"しない限り、公開されているダッシュボードには影響がありません。
+
+この2つのモードの違いは、ダッシュボードの共有時にも関係してきます。すなわち、下書きモードも含めて共有を許可するのか、完成した(公開された)ダッシュボードのみを共有するのかで分かれます。
+
+共有設定と共有される範囲は以下の通りです。
+
+| 許可範囲 |  閲覧可能 | 実行可能 | 編集可能 | 管理可能 |
+| ---      | --- | ---| --- | --- | 
+| 公開ダッシュボードの表示 | O | O | O | O |
+| ウィジェットの操作(フィルタ適用など) | O | O | O | O |
+| ダッシュボードの複製 | O | O | O | O |
+| 最新データでチャート状態をアップデート | | O | O | O | O |
+| ダッシュボードを編集 |  |  | O | O |
+| ダッシュボードを削除 |  |  |  | O |
+| ダッシュボードの権限変更 |  |  |  | O |
 
 
+これまで編集していたダッシュボードは **"下書き"モード** で行っていました。
+ダッシュボードを公開モードにするには(下書きモードの状態を公開モードに上書きするには)、画面上部にある`公開`ボタンをクリックします。加えて、`共有`ボタンから共有するユーザーを適切な権限で追加します。
+これにより、上記で作成したダッシュボードが公開・共有できます。
 
 
+## まとめ
+
+今回はDatabricksのダッシュボード機能であるLakeviewについて見てきました。AIアシスタントを利用することでSQLを書かなくてもデータの可視化ができ、「データの民主化」の一つのサービス形態を提供しています。今回は基本的な描画機能のみを使用しましたが、アナリティクスで必要になるチャートは一通り揃っていますので、是非手を動かして試してみてください。
+
+### 参考
+
+* 公式ドキュメント - [www.databricks.com/jp/databricks-documentation](https://www.databricks.com/jp/databricks-documentation)
+* 本記事のコードは[https://github.com/ktmrmshk/lakehousebook/tree/main/Lakeview](https://github.com/ktmrmshk/lakehousebook/tree/main/Lakeview)で参照可能です。
